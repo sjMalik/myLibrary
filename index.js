@@ -8,15 +8,16 @@ const express = require('express');
 const ejsLayout = require('express-ejs-layouts');
 const path = require('path');
 const mongoose = require('mongoose');
+const debug = require('debug')('library:server');
 
-console.log(process.env.MONGODB_URI)
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true })
-  .then(() => console.log('Mongodb connected'))
+  .then(() => debug('Mongodb connected'))
   .catch((e) => {
-    console.error(e);
+    debug(e);
   });
 
 const indexRoute = require('./routes');
+const authorRoute = require('./routes/authors');
 
 const app = express();
 
@@ -29,8 +30,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
 app.use('/', indexRoute);
+app.use('/authors', authorRoute);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`App listening on port ${PORT}`);
+  debug(`App listening on port ${PORT}`);
 });
