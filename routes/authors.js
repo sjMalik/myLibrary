@@ -2,6 +2,7 @@
 const express = require('express');
 const debug = require('debug')('library:author');
 const Author = require('../models/author');
+const Book = require('../models/book');
 
 const router = express.Router();
 
@@ -38,6 +39,58 @@ router.post('/', async (req, res) => {
       author,
       errorMessage: 'Error creating author',
     });
+  }
+});
+
+router.get('/:id', async (req, res) => {
+  try {
+    const author = await Author.findById(req.params.id);
+    const books = await Book.find({ author: author.id }).limit(6).exec();
+    res.render('authors/view', { author, books });
+  } catch (e) {
+    debug(e);
+    res.redirect('/');
+  }
+});
+
+router.get('/:id/edit', async (req, res) => {
+  try {
+    const author = await Author.findById(req.params.id);
+    res.render('authors/edit', { author });
+  } catch (e) {
+    res.redirect('/authors');
+  }
+});
+
+router.put('/:id', async (req, res) => {
+  let author;
+  try {
+    author = await Author.findById(req.params.id);
+    author.name = req.body.name;
+    await author.save();
+    res.redirect(`/authors/${req.params.id}`);
+  } catch (e) {
+    if (!author) {
+      res.redirect('/');
+    } else {
+      res.render('authors/edit', { author, errorMessage: 'Updating failed' });
+    }
+  }
+});
+
+router.delete('/:id', async (req, res) => {
+  let author;
+  try {
+    await Author.findOneAndRemove({ _id: req.params.id });
+    // await author.remove();
+    res.redirect('/authors');
+  } catch (e) {
+    debug(e);
+    if (!author) {
+      res.redirect('/');
+    } else {
+      res.redirect(`/authors/${req.params.id}`);
+    }
   }
 });
 

@@ -9,6 +9,7 @@ const ejsLayout = require('express-ejs-layouts');
 const path = require('path');
 const mongoose = require('mongoose');
 const debug = require('debug')('library:server');
+const methodOverride = require('method-override');
 
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true })
   .then(() => debug('Mongodb connected'))
@@ -26,6 +27,7 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '/views'));
 app.set('layout', 'layouts/layout');
 app.use(ejsLayout);
+app.use(methodOverride('_method'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
