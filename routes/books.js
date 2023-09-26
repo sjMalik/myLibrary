@@ -1,7 +1,6 @@
 /* eslint-disable no-use-before-define */
 const express = require('express');
 const path = require('path');
-const multer = require('multer');
 const debug = require('debug')('library:book');
 const fs = require('fs');
 
@@ -10,15 +9,6 @@ const Book = require('../models/book');
 
 const uploadPath = path.join('public', Book.coverImageBasePath);
 const imageMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-
-// Dont want to hard code the dest path thats why its coming from model
-// fileFilter is for allowing desired format e.g. either its image or pdf
-const upload = multer({
-  dest: uploadPath,
-  fileFilter: (req, file, callback) => {
-    callback(null, imageMimeTypes.includes(file.mimetype));
-  },
-});
 
 const router = express.Router();
 
@@ -52,16 +42,16 @@ router.get('/', async (req, res) => {
 });
 
 // take a single file with name 'cover'
-router.post('/', upload.single('cover'), async (req, res) => {
-  const fileName = req.file ? req.file.filename : null;
+router.post('/', async (req, res) => {
   const book = new Book({
     title: req.body.title,
     author: req.body.author,
     description: req.body.description,
     publishDate: req.body.publishDate,
     pageCount: req.body.pageCount,
-    coverImageName: fileName,
   });
+
+  saveCover(book, req.body.cover);
 
   try {
     await book.save();
@@ -85,6 +75,17 @@ async function renderNewPage(res, book, hasError = false) {
     res.render('books/new', params);
   } catch (e) {
     res.redirect('/books');
+  }
+}
+
+function saveCover(book, coverEncoded) {
+  if (!coverEncoded) return;
+  const cover = JSON.parse(coverEncoded);
+  if (cover && imageMimeTypes.includes(cover.type)) {
+    // eslint-disable-next-line
+    book.coverImage = new Buffer.from(cover.data, 'utf8');
+    // eslint-disable-next-line
+    book.coverImageType = cover.type;
   }
 }
 
