@@ -1,0 +1,10 @@
+<h2>New Book</h2>
+
+<!-- This tells the server that our form will post mutipart data which could include a file -->
+<form action="/books" method="POST" enctype="multipart/form-data">
+    <%- include('./_form_fields.ejs') %>
+    <div>
+        <a href="/books">Cancel</a>
+        <button type="submit">Submit</button>
+    </div>
+</form>
