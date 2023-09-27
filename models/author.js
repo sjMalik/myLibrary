@@ -11,7 +11,8 @@ const authorSchema = new mongoose.Schema({
 // Check whhether any reference exist or not. If so then dont allow deletion
 // authorSchema.pre('findOneAndRemove', async function (next) {
 //     try {
-//         const books = Book.find({ author: this.id });
+//         const books = await Book.find({ author: this.id });
+//         debug(books);
 //         if (books.length > 0) {
 //             next(new Error('This author has books still'));
 //         } else {
@@ -20,16 +21,16 @@ const authorSchema = new mongoose.Schema({
 //     } catch (e) {
 //         next(e);
 //     }
-//     Book.find({ author: this.id }, (err, books) => {
-//         debug(books);
-//       if (err) {
-//         next(err);
-//       } else if (books.length > 0) {
-//         next(new Error('This author has books still'));
-//       } else {
-//         next();
-//       }
-//     });
+//     // Book.find({ author: this.id }, (err, books) => {
+//     //     debug(books);
+//     //   if (err) {
+//     //     next(err);
+//     //   } else if (books.length > 0) {
+//     //     next(new Error('This author has books still'));
+//     //   } else {
+//     //     next();
+//     //   }
+//     // });
 //   });
 
 module.exports = mongoose.model('Authors', authorSchema);

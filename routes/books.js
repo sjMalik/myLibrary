@@ -19,7 +19,6 @@ router.get('/new', async (req, res) => {
 
 router.get('/', async (req, res) => {
   let query = Book.find();
-  debug(req.query);
   if (req.query.title && req.query.title !== '') {
     query = query.regex('title', new RegExp(req.query.title, 'i'));
   }
@@ -65,14 +64,84 @@ router.post('/', async (req, res) => {
   }
 });
 
+router.get('/:id', async (req, res) => {
+  try {
+    const book = await Book.findById(req.params.id).populate('author').exec();
+    res.render('books/view', { book });
+  } catch (e) {
+    debug(e);
+    res.redirect('/books');
+  }
+});
+
+router.get('/:id/edit', async (req, res) => {
+  try {
+    const book = await Book.findById(req.params.id);
+    await renderEditPage(res, book);
+  } catch (e) {
+    res.redirect(`/books/${req.params.id}`);
+  }
+});
+
+router.put('/:id', async (req, res) => {
+  debug(`/books/${req.params.id} PUT ${req.body}`);
+  let book;
+  try {
+    book = await Book.findById(req.params.id);
+    book.title = req.body.title;
+    book.description = req.body.description;
+    book.author = req.body.author;
+    book.publishDate = new Date(req.body.publishDate);
+    book.pageCount = req.body.pageCount;
+    if (req.body.cover && req.body.cover !== '') {
+      saveCover(book, req.body.cover);
+    }
+    await book.save();
+    res.redirect(`/books/${req.params.id}`);
+  } catch (e) {
+    debug(e);
+    if (!book) {
+      renderEditPage(res, book, true);
+    } else {
+      res.redirect('/books');
+    }
+  }
+});
+
+router.delete('/:id', async (req, res) => {
+  let book;
+  try {
+    book = await Book.findOneAndDelete({ _id: req.params.id });
+    res.redirect('/books');
+  } catch (e) {
+    if (!book) {
+      res.redirect('/books');
+    } else {
+      res.redirect(`/books/${req.params.id}`);
+    }
+  }
+});
+
 async function renderNewPage(res, book, hasError = false) {
+  await renderFormPage(res, book, 'new', hasError);
+}
+
+async function renderEditPage(res, book, hasError = false) {
+  await renderFormPage(res, book, 'edit', hasError);
+}
+
+async function renderFormPage(res, book, form, hasError) {
   try {
     const authors = await Author.find({});
     const params = { authors, book };
     if (hasError) {
-      params.errorMessage = 'Error creating book';
+      if (form === 'edit') {
+        params.errorMessage = 'Error updating book';
+      } else if (form === 'new') {
+        params.errorMessage = 'Error creating book';
+      }
     }
-    res.render('books/new', params);
+    res.render(`books/${form}`, params);
   } catch (e) {
     res.redirect('/books');
   }

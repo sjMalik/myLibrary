@@ -83,7 +83,7 @@ router.delete('/:id', async (req, res) => {
   try {
     const books = await Book.find({ author: req.params.id });
     if (books.length === 0) {
-      await Author.findOneAndRemove({ _id: req.params.id });
+      author = await Author.findOneAndDelete({ _id: req.params.id });
       res.redirect('/authors');
     } else {
       res.redirect(`/authors/${req.params.id}`);
